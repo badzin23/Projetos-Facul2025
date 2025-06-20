@@ -1,133 +1,229 @@
 #include <stdio.h>      
-#include <stdlib.h>     // Biblioteca para usar system() e manipulações gerais
-#include <string.h>     // Biblioteca para manipulação de strings (usada em sprintf)
+#include <stdlib.h>     // Biblioteca para funções gerais (system, etc)
+#include <string.h>     // Biblioteca para manipulação de strings (usada no histórico)
+#include <math.h>       // Biblioteca para funções matemáticas como pow()
 
-// Função que limpa a tela dependendo do sistema operacional
-void limpar_tela() {
-#ifdef _WIN32            // Se estiver compilando no Windows
-    system("cls");       // Limpa a tela com comando do Windows
-#else                    // Caso contrário (Linux, Mac, etc.)
-    system("clear");     // Limpa a tela com comando do Linux
+// Define comando de limpar tela dependendo do sistema operacional
+#ifdef _WIN32
+#define LIMPAR "cls"    // Windows usa "cls"
+#else
+#define LIMPAR "clear"  // Linux/Mac usam "clear"
 #endif
+
+// Função que exibe uma animação de "Calculando..."
+void animarCarregamento() {
+    printf("\nCalculando");
+    for (int i = 0; i < 3; i++) {
+        fflush(stdout); // Garante que o texto seja exibido imediatamente
+        sleep(1);       // Espera 1 segundo
+        printf(".");
+    }
+    printf("\n");
 }
 
 int main() {
-    float num1 = 0, num2 = 0, resultado = 0;  // Números e resultado da operação
-    char operacao = '+';                      // Operador aritmético (padrão: '+')
-    int continuar = 1;                        // Controla o laço principal
+    float num1 = 0, num2 = 0, resultado = 0;
+    char operacao = '+';             // Armazena a operação (ex: +, -, *, /, etc)
+    char operacao_f_char = '?';      // Armazena o símbolo da operação de fração
 
-    // Histórico: vetor de strings (100 posições, 100 caracteres cada)
+    // Controle do loop principal
+    int continuar = 1;
+
+    // Variáveis para operações com frações (numerador e denominador)
+    int num1_n = 0, num1_d = 1, num2_n = 0, num2_d = 1;
+
+    // Histórico de até 100 operações, cada uma com até 100 caracteres
     char historico[100][100];
-    int total_operacoes = 0;                 // Conta quantas operações foram salvas
+    int total_operacoes = 0; // Contador de operações realizadas
 
+    // Início do loop principal da calculadora
     while (continuar) {
-        limpar_tela(); // Limpa a tela a cada repetição
+        system(LIMPAR); // Limpa a tela (Windows ou Linux)
 
-        // Interface do menu da calculadora
-        printf("=================================\n");
-        printf("         CALCULADORA SIMPLES     \n");
-        printf("=================================\n");
-        printf(" Operação atual: %.2f %c %.2f = %.2f\n", num1, operacao, num2, resultado);
-        printf("=================================\n");
-        printf("1 - Digitar primeiro número\n");
-        printf("2 - Digitar segundo número\n");
-        printf("3 - Escolher operação (+ - * /)\n");
-        printf("4 - Calcular\n");
-        printf("5 - Ver histórico\n");
-        printf("6 - Sair\n");
-        printf("=================================\n");
-        printf("Escolha uma opção: ");
+        // Interface visual da calculadora
+        printf("==================================\n");
+        printf("|         CALCULADORA            |\n");
+        printf("|--------------------------------|\n");
+
+        // Mostra o formato do cálculo, dependendo do tipo da operação
+        if (operacao == 'r') { // Raiz
+            printf("|   %.0f√%.2f = %.2f               |\n", num1, num2, resultado);
+        } else if (operacao == 'f') { // Fração
+            printf("|  (%d/%d) %c (%d/%d) = %.2f        |\n", num1_n, num1_d, operacao_f_char, num2_n, num2_d, resultado);
+        } else { // Operações comuns
+            printf("|   %.2f %c %.2f = %.2f             |\n", num1, operacao, num2, resultado);
+        }
+
+        // Menu principal de opções
+        printf("==================================\n");
+        printf("| # ESCOLHA UMA OPÇÃO #          |\n");
+        printf("==================================\n");
+        printf("| 1 - Adição                     |\n");
+        printf("| 2 - Subtração                  |\n");
+        printf("| 3 - Multiplicação              |\n");
+        printf("| 4 - Divisão                    |\n");
+        printf("| 5 - Raiz com índice            |\n");
+        printf("| 6 - Operações com frações      |\n");
+        printf("| 7 - Ver histórico              |\n");
+        printf("| 0 - Encerrar                   |\n");
+        printf("==================================\n");
+        printf("Opção: ");
 
         int opcao;
-        scanf("%d", &opcao); // Lê a escolha do usuário
+        scanf("%d", &opcao); // Lê a opção escolhida
 
+        // Verifica a opção e executa a operação correspondente
         switch (opcao) {
-            case 1:
-                printf("Digite o primeiro número: ");
-                scanf("%f", &num1); // Lê o primeiro número
+            case 1: // Adição
+                printf("Digite os valores (ex: 5 5): ");
+                scanf("%f %f", &num1, &num2);
+                animarCarregamento();
+                resultado = num1 + num2;
+                operacao = '+';
+                // Salva no histórico
+                if (total_operacoes < 100) {
+                    sprintf(historico[total_operacoes++], "%.2f + %.2f = %.2f", num1, num2, resultado);
+                }
                 break;
 
-            case 2:
-                printf("Digite o segundo número: ");
-                scanf("%f", &num2); // Lê o segundo número
+            case 2: // Subtração
+                printf("Digite os valores (ex: 5 5): ");
+                scanf("%f %f", &num1, &num2);
+                animarCarregamento();
+                resultado = num1 - num2;
+                operacao = '-';
+                if (total_operacoes < 100) {
+                    sprintf(historico[total_operacoes++], "%.2f - %.2f = %.2f", num1, num2, resultado);
+                }
                 break;
 
-            case 3:
-                printf("Digite a operação (+, -, *, /): ");
-                scanf(" %c", &operacao); // Lê o operador
+            case 3: // Multiplicação
+                printf("Digite os valores (ex: 5 5): ");
+                scanf("%f %f", &num1, &num2);
+                animarCarregamento();
+                resultado = num1 * num2;
+                operacao = '*';
+                if (total_operacoes < 100) {
+                    sprintf(historico[total_operacoes++], "%.2f * %.2f = %.2f", num1, num2, resultado);
+                }
                 break;
 
-            case 4:
-                // Executa a operação aritmética com base no operador
-                switch (operacao) {
-                    case '+':
-                        resultado = num1 + num2;
+            case 4: // Divisão
+                printf("Digite os valores (ex: 5 5): ");
+                scanf("%f %f", &num1, &num2);
+                if (num2 == 0) {
+                    // Tratamento de erro para divisão por zero
+                    printf("Erro: divisão por zero!\n");
+                    sleep(2);
+                    break;
+                }
+                animarCarregamento();
+                resultado = num1 / num2;
+                operacao = '/';
+                if (total_operacoes < 100) {
+                    sprintf(historico[total_operacoes++], "%.2f / %.2f = %.2f", num1, num2, resultado);
+                }
+                break;
+
+            case 5: { // Raiz com índice
+                float indice, radicando;
+                printf("Índice da raiz: ");
+                scanf("%f", &indice);
+                if (indice == 0) {
+                    printf("Índice inválido!\n");
+                    sleep(2);
+                    break;
+                }
+                printf("Valor radicado: ");
+                scanf("%f", &radicando);
+                animarCarregamento();
+                resultado = pow(radicando, 1.0 / indice);
+                operacao = 'r';
+                num1 = indice;
+                num2 = radicando;
+                if (total_operacoes < 100) {
+                    sprintf(historico[total_operacoes++], "%.0f√%.2f = %.2f", num1, num2, resultado);
+                }
+                break;
+            }
+
+            case 6: { // Operações com frações
+                int tipo;
+                float frac1, frac2;
+                printf("Operações com frações:\n1 - Soma\n2 - Subtração\n3 - Multiplicação\n4 - Divisão\nEscolha: ");
+                scanf("%d", &tipo);
+
+                printf("Digite as frações (ex: 1/2 3/4): ");
+                scanf("%d/%d %d/%d", &num1_n, &num1_d, &num2_n, &num2_d);
+
+                frac1 = (float)num1_n / num1_d;
+                frac2 = (float)num2_n / num2_d;
+                animarCarregamento();
+
+                // Calcula conforme o tipo
+                switch (tipo) {
+                    case 1:
+                        resultado = frac1 + frac2;
+                        operacao_f_char = '+';
                         break;
-                    case '-':
-                        resultado = num1 - num2;
+                    case 2:
+                        resultado = frac1 - frac2;
+                        operacao_f_char = '-';
                         break;
-                    case '*':
-                        resultado = num1 * num2;
+                    case 3:
+                        resultado = frac1 * frac2;
+                        operacao_f_char = '*';
                         break;
-                    case '/':
-                        if (num2 != 0) {
-                            resultado = num1 / num2;
-                        } else {
-                            // Mensagem de erro para divisão por zero
+                    case 4:
+                        if (frac2 == 0) {
                             printf("Erro: divisão por zero!\n");
-                            resultado = 0;
-                            break;
+                            sleep(2);
+                            continue;
                         }
+                        resultado = frac1 / frac2;
+                        operacao_f_char = '/';
                         break;
                     default:
-                        // Se o operador for inválido
                         printf("Operação inválida!\n");
-                        break;
+                        continue;
                 }
 
-                // Adiciona a operação ao histórico (se ainda houver espaço)
+                operacao = 'f';
+                num1 = frac1;
+                num2 = frac2;
                 if (total_operacoes < 100) {
-                    // Salva uma string com a operação formatada
-                    sprintf(historico[total_operacoes], "%.2f %c %.2f = %.2f", num1, operacao, num2, resultado);
-                    total_operacoes++; // Incrementa o contador de histórico
-                } else {
-                    printf("Histórico cheio. Não é possível salvar mais operações.\n");
+                    sprintf(historico[total_operacoes++], "(%d/%d) %c (%d/%d) = %.2f", num1_n, num1_d, operacao_f_char, num2_n, num2_d, resultado);
                 }
-
-                // Exibe o resultado e espera o usuário apertar Enter
-                printf("Resultado: %.2f\n", resultado);
-                printf("Pressione Enter para continuar...");
-                getchar(); getchar(); // Pausa (espera outro enter)
                 break;
+            }
 
-            case 5:
-                limpar_tela(); // Limpa a tela antes de mostrar o histórico
+            case 7: // Ver histórico
+                system(LIMPAR);
                 printf("======= HISTÓRICO DE OPERAÇÕES =======\n");
                 if (total_operacoes == 0) {
-                    printf("Nenhuma operação realizada ainda.\n");
+                    printf("Nenhuma operação realizada.\n");
                 } else {
-                    // Exibe todas as operações salvas
+                    // Imprime todas as operações salvas
                     for (int i = 0; i < total_operacoes; i++) {
                         printf("%d) %s\n", i + 1, historico[i]);
                     }
                 }
                 printf("======================================\n");
                 printf("Pressione Enter para voltar...");
-                getchar(); getchar(); // Pausa para visualização
+                getchar(); getchar(); // Aguarda o usuário
                 break;
 
-            case 6:
-                continuar = 0; // Sai do laço principal
+            case 0: // Encerrar programa
+                continuar = 0;
                 break;
 
-            default:
-                // Mensagem de opção inválida
+            default: // Opção inválida
                 printf("Opção inválida!\n");
-                printf("Pressione Enter para continuar...");
-                getchar(); getchar();
+                sleep(2);
         }
     }
 
+    // Mensagem final
     printf("Calculadora encerrada. Até logo!\n");
     return 0;
 }
